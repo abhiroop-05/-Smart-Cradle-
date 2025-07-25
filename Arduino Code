@@ -1,0 +1,57 @@
+#include <Servo.h>
+
+#define MOISTURE_SENSOR A0
+#define SOUND_SENSOR 2
+#define LED 7
+#define SERVO1_PIN 5
+#define SERVO2_PIN 6
+
+Servo servo1, servo2;
+
+void setup() {
+    pinMode(MOISTURE_SENSOR, INPUT);
+    pinMode(SOUND_SENSOR, INPUT);
+    pinMode(LED, OUTPUT);
+    
+    servo1.attach(SERVO1_PIN);
+    servo2.attach(SERVO2_PIN);
+    
+    Serial.begin(9600);
+    Serial.println("System Initialized...");
+}
+
+void loop() {
+    int moistureValue = analogRead(MOISTURE_SENSOR); // Read moisture sensor
+    int moistureThreshold = 512;  // 50% of 1023 (10-bit ADC)
+    
+    int soundDetected = digitalRead(SOUND_SENSOR);  // Read sound sensor (0 or 1)
+
+    // Moisture sensor logic
+    if (moistureValue > moistureThreshold) {
+        digitalWrite(LED, HIGH);  // Turn on LED if diaper is wet
+        Serial.println("Diaper is wet.");
+    } else {
+        digitalWrite(LED, LOW);   // Turn off LED if dry
+    }
+
+    // Sound sensor logic
+    if (soundDetected == HIGH) {  // If baby is crying (sound detected)
+        Serial.println("Baby is crying.");
+        rockCradle();             // Start rocking motion
+    }
+
+    delay(1000);  // Delay for stability
+}
+
+void rockCradle() {
+    for (int i = 0; i < 3; i++) {
+        servo1.write(0);
+        servo2.write(45);
+        delay(100);
+        servo1.write(45);
+        servo2.write(0);
+        delay(100);
+    }
+    servo1.write(90);  // Reset servos to center
+    servo2.write(90);
+}
